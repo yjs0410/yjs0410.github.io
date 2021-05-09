@@ -1,0 +1,229 @@
+---
+title: "Cancer and Air Pollution"
+author: "SDS348 Project 1"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+---
+
+```{r global_options, include=FALSE}
+#DO NOT EDIT THIS CHUNK OR ANYTHING ABOVE IT!
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+```
+
+## Project 1 - Yujin Song
+
+
+### Introduction
+One of my family member was diagnosed with lung cancer 2 years ago. I was very surprised by that because she was not a smoker, heavy drinker, or having a family history of cancer. Since her life was not even close to all the high risk factors of lung cancer, I thought air pollution might have some effects on her disease. Therefore, I decided to find whether there is a relationship between air pollution and the lung cancer.
+For this project, there are four different datasets; The first dataset contains number of new cancer patients registered as lung and bronchus cancers in 2017 by each state and their population, the second dataset contains the percentage of cigarette use by adults in 2017 by each state, the third dataset contains average air quality index measured in 2017 by each state, and the last dataset contains the number of people who died from lung and bronchus cancer in 2017 by each state. These datasets are combined based on their common variable 'state'. 
+
+
+
+
+### Dataset Preparation
+```{R}
+library(tidyverse)
+# Load lung cancer cases dataset
+lung_cancer <- read_csv("p1data/USCS.csv")
+# Load smoking percentage dataset
+smoking <- read_csv("p1data/smoking.csv")
+smoking <- smoking[-54,]
+# Load air quality index dataset
+aqi <- read_csv("p1data/AirQuality.csv")
+aqi <- aqi[,-3]
+# Load lung cancer death counts dataset
+death <- read_csv("p1data/USCS_death.csv")
+death <- death[,-c(3:8)]
+
+# Join Datasets
+allData <- full_join(lung_cancer, smoking, by = c("Area" = "Location"))
+allData <- full_join(aqi, allData, by = c("State" = "Area"))
+allData <- full_join(allData, death, by = c("State" = "Area"))
+# Delete unnecessary columns 
+allData <- allData[,-c(3:7)]
+# Rename column with appropriate name
+allData <- rename(allData, SmokePerc = Data_Value)
+```
+
+*Datasets are loaded, and they are joined by variable 'state' since it is a common variable for all four datasets*\
+*After the datasets are joined into one, 'CancerType', 'Year', 'Sex', and 'Race' columns are dropped since there are no variation in these columns.*\
+*The column 'AgedAdjustedRate' which contais adjusted age rates that help fair comparisons between groups with different age distribution, was also dropped since it will not be used in data analysis. However, dropping this column might cause some biases because there are definitely higher rate of death in the state having higher percentage of elderly people.*\
+
+
+### Summary Statistics
+
+```{r}
+# Drop NAs in dataset
+allData <- allData %>% drop_na()
+
+# Find number of observations in dataset
+allData %>% n_distinct()
+```
+*After NAs are dropped, there are 50 unique observations in the dataset.*
+
+```{r}
+# Find max, min values for numeric variables using filter()
+allData %>% filter(AirQualityIndex==max(AirQualityIndex) | AirQualityIndex==min(AirQualityIndex))
+allData %>% filter(CaseCount==max(CaseCount) | CaseCount==min(CaseCount))
+allData %>% filter(Population==max(Population) | Population==min(Population))
+allData %>% filter(SmokePerc==max(SmokePerc) | SmokePerc==min(SmokePerc))
+allData %>% filter(DeathCount==max(DeathCount) | DeathCount==min(DeathCount))
+```
+*The Hawaii has the lowest Air Quality Index of 21.2, and the Utah has the highest Air Quality Index of 51.2.*\
+*The Wyoming has the lowest new cancer cases of 1444, and the California has the highest new cancer cases of 85144.*\
+*The Wyoming has the smallest population size of 2913563, and the California has the largest population size of 194467581.*\
+*The Utah has the lowest cigarette usage of 9.0, and the West Virginia has the highest cigarette usage of 25.2%.*\
+*The Wyoming has the lowest number of death of 1078, and the California has the highest number of death of 60423.*\
+
+```{r}
+# Find mean of numeric variables using select()
+allData %>% select_if(is.numeric) %>% colMeans()
+
+# Find sd of numeric variables
+allData %>% select_if(is.numeric) %>% summarise(sd(AirQualityIndex), sd(CaseCount), sd(Population), sd(SmokePerc), sd(DeathCount))
+```
+*Overall, the average AQI is 42.21, the average number of individual with lung cancer is 22126, the average size of population is 32000696, the average percentage of people who smoke is 16.65%, and the average number of death is 15180.*\
+*The overall standard deviations are also calculated for the numeric variables. The std of AQI is 5.26, the std of new lung cancer cases is 21029.3, the std of population is 35985449, the std of smoke percentage is 3.32, and the std of number of death is 14323.6.*\
+
+```{r}
+# Create categorical variable based on air quality index using mutate()
+allData <- allData %>% mutate(AQI_category = cut(AirQualityIndex, breaks = c(0, 30, 60), labels = c("good", "moderate")))
+
+# Number of observations in each AQI category
+allData %>% group_by(AQI_category) %>% summarise(n = n())
+```
+*The categorical variable is created based on the AQI. States where index lower than 30 marked as 'good', and the states where index higher than 30 is marked as 'moderate'. *\
+*Two areas (Hawaii and Alaska) are marked as 'good', and other 48 states are maked as 'moderate'.*\
+
+```{r}
+# Group by AQI and get case count statistics
+allData %>% group_by(AQI_category) %>% summarise(AvgCaseCount = mean(CaseCount), sd = sd(CaseCount), min_case = min(CaseCount), max_case = max(CaseCount)) %>% arrange(AvgCaseCount)
+```
+*For areas where AQI is 'good', the minimum case count is 1785 and the maximum case count is 4172. The average lung cancer case is 2978.5 with standard deviation of 1687.8.*\
+*For areas where AQI is 'moderate', the minimum case count is 1444 and the maximum case count is 85144. The average lung cancer case is 22924.23 with standard deviation of 21088.795.*\
+
+```{r}
+# Group by AQI and get population statistics
+allData %>% group_by(AQI_category) %>% summarise(AvgPop = mean(Population), sd = sd(Population), min_pop = min(Population), max_pop = max(Population)) %>% arrange(AvgPop)
+```
+*For areas where AQI is 'good', the minimum population size is 3692189 and the maximum is 7098107. The average population size is 5395148 with standard deviation of 2408348.*\
+*For areas where AQI is 'moderate', the minimum population size is 2913563 and the maximum is 194467581. The average population size is 33109261 with standard deviation of 36311940.*\
+
+```{r}
+# Group by AQI and get air quality statistics
+allData %>% group_by(AQI_category) %>% summarise(AvgAQI = mean(AirQualityIndex), sd = sd(AirQualityIndex), min_AQI = min(AirQualityIndex), max_AQI = max(AirQualityIndex)) %>% arrange(AvgAQI)
+```
+*For areas where AQI is 'good', the minimum AQI is 21.2 and the maximum is 29.1. The average AQI is 25.150 with standard deviation of 5.59.*\
+*For areas where AQI is 'moderate', the minimum AQI is 33.5 and the maximum is 51.2. The average AQI is 42.925 with standard deviation of 3.91.*\
+
+```{r}
+# Group by AQI and get smoke percentage statistics
+allData %>% group_by(AQI_category) %>% summarise('AvgSmoke%' = mean(SmokePerc), sd = sd(SmokePerc), 'min_smoke%' = min(SmokePerc), 'max_smoke%' = max(SmokePerc)) %>% arrange('AvgSmoke%')
+```
+*For areas where AQI is 'good', the minimum smoking percentage is 13.4% and the maximum is 19.1%. The average smoking is 16.25% with standard deviation of 4.03.*\
+*For areas where AQI is 'moderate', the minimum smoking percentage is 9.0% and the maximum is 25.2%. The average smoking is 16.66% with standard deviation of 3.33.*\
+
+```{R}
+# Group by AQI and get death count statistics
+allData %>% group_by(AQI_category) %>% summarise(AvgDeath = mean(DeathCount), sd = sd(DeathCount), min_death = min(CaseCount), max_death = max(DeathCount)) %>% arrange(AvgDeath)
+```
+*For areas where AQI is 'good', the minimum death count is 1785, and the maximum is 2798. The average number of death is 2000 with standard deviation of 1128.5.*\
+*For areas where AQI is 'moderate', the minimum death count is 1444, and the maximum is 60423. The average number of death is 15730.06 with standard deviation of 14358.52.*\
+
+
+### Visualization
+
+#### Correlation Heatmap
+```{R}
+# Correlation heatmap
+allData_num <- allData %>% column_to_rownames("State") %>% select_if(is.numeric) %>% cor()
+
+# Create correlation heatmap
+cor_data <- allData_num %>% as.data.frame %>% rownames_to_column('var1') %>% pivot_longer(-1, names_to = 'var2', values_to = 'correlation')
+cor_data %>% ggplot(aes(var1, var2, fill= correlation)) + geom_tile() + scale_fill_gradient2(low = 'blue', mid = 'white', high = 'red') + geom_text(aes(label= round(correlation,2)), color = 'black', size = 3)
+```
+*According to the correlation heatmap, there are strong realationship between population and number of cases. This seems obvious since the number of people with cancer will be higher in bigger population.*\
+*There are strong positive correlation between population and death count, which is also obvious as above. The possible error source is lack of age adjusted rate, which has been removed from the dataset. If we don;t consider the age adjusted rate, there are higher chance of getting biased results due to differences in age distribution.*
+
+#### Scatterplot 1
+```{r}
+allData %>% ggplot(aes(CaseCount, DeathCount)) + 
+  labs(x="Cancer case", y="Death", title = "Number of cases vs. Number of death due to lung cancer")+
+  geom_point(aes(color = AQI_category))
+```
+*According to the scatterplot, there is a strong positive correlation between the new lung/bronchus cancers and the number of deaths due to lung/bronchus cancers. It shows the high mortality rate of disease.*\
+*States with AQI value 'good' tend to have low cancer cases compare to the states with AQI value 'moderate', but AQI and number of cases are very weakly associated since there are states with 'moderate' AQI having low number of cases.*\
+
+#### Scatterplot 2
+```{r}
+new_all <- allData %>% mutate(case_per = ((CaseCount / Population)*100))
+new_all %>% ggplot(aes(AirQualityIndex, case_per)) + 
+  labs(x="AQI", y="Percent of lung cancer patient in population (%)", title = "AQI vs. Percent of new lung cancer cases")+
+  geom_point(aes(color = AQI_category))
+```
+*The new dataset 'new_all' is created, which contains the percent of cancer cases in each population.*\
+*According to the plot, there is a slightly positive relationship between AQI and the percent of getting lung/bronchus cancers. States with low AQI tend to have lower chance of getting cancers compare to the states with high AQI.*\
+
+### PCA
+
+#### Prepare data and perform PCA
+```{r}
+#Data preparation
+all1<- allData %>% select(-AQI_category)
+all_num <-all1 %>% select_if(is.numeric) %>% scale 
+rownames(all_num)<- all1$State
+
+# Perform PCA
+all_pca<-princomp(all_num)
+
+# Summarize result
+summary(all_pca, loadings=T)
+
+# Plot PC scores
+alldf<-data.frame(Name=all1$State, PC1=all_pca$scores[, 1],PC2=all_pca$scores[, 2])
+ggplot(alldf, aes(PC1, PC2)) + geom_point()
+
+```
+
+#### Choose number of principal components
+```{r}
+# Decide how many PCs to keep
+eigval<-all_pca$sdev^2
+round(cumsum(eigval)/sum(eigval), 2) 
+```
+
+
+#### Compute PC scores
+```{r}
+#highest on PC1
+all_pca$scores[,1:4] %>% as.data.frame  %>% top_n(3, Comp.1)
+#lowest PC1
+all_pca$scores[,1:4] %>% as.data.frame  %>% top_n(-3, Comp.1)
+#highest on PC2
+all_pca$scores[,1:4] %>% as.data.frame  %>% top_n(3, wt=Comp.2)
+#lowest on PC2
+all_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=desc(Comp.2))
+```
+
+
+#### Plot of loadings
+```{r}
+# Plot of loadings
+all_pca$loadings[1:5, 1:2] %>% as.data.frame %>% rownames_to_column %>% ggplot() + geom_hline(aes(yintercept=0), lty=2) +   
+geom_vline(aes(xintercept=0), lty=2) + 
+  ylab("PC2") + xlab("PC1") +   
+  geom_segment(aes(x=0, y=0, xend=Comp.1, yend=Comp.2), arrow=arrow(), col="red") +   geom_label(aes(x=Comp.1*1.1, y=Comp.2*1.1, label=rowname))
+```
+
+
+
+```{R, echo=F}
+## DO NOT DELETE THIS BLOCK!
+sessionInfo()
+Sys.time()
+Sys.info()
+```

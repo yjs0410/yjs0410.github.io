@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Yujin Song" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Cancer and Air Pollution</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Cancer and Air Pollution</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="project-1---yujin-song" class="section level2">
+<h2>Project 1 - Yujin Song</h2>
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>One of my family member was diagnosed with lung cancer 2 years ago. I was very surprised by that because she was not a smoker, heavy drinker, or having a family history of cancer. Since her life was not even close to all the high risk factors of lung cancer, I thought air pollution might have some effects on her disease. Therefore, I decided to find whether there is a relationship between air pollution and the lung cancer.
+For this project, there are four different datasets; The first dataset contains number of new cancer patients registered as lung and bronchus cancers in 2017 by each state and their population, the second dataset contains the percentage of cigarette use by adults in 2017 by each state, the third dataset contains average air quality index measured in 2017 by each state, and the last dataset contains the number of people who died from lung and bronchus cancer in 2017 by each state. These datasets are combined based on their common variable ‘state’.</p>
+</div>
+<div id="dataset-preparation" class="section level3">
+<h3>Dataset Preparation</h3>
+<pre class="r"><code>library(tidyverse)
+# Load lung cancer cases dataset
+lung_cancer &lt;- read_csv(&quot;p1data/USCS.csv&quot;)
+# Load smoking percentage dataset
+smoking &lt;- read_csv(&quot;p1data/smoking.csv&quot;)
+smoking &lt;- smoking[-54, ]
+# Load air quality index dataset
+aqi &lt;- read_csv(&quot;p1data/AirQuality.csv&quot;)
+aqi &lt;- aqi[, -3]
+# Load lung cancer death counts dataset
+death &lt;- read_csv(&quot;p1data/USCS_death.csv&quot;)
+death &lt;- death[, -c(3:8)]
+
+# Join Datasets
+allData &lt;- full_join(lung_cancer, smoking, by = c(Area = &quot;Location&quot;))
+allData &lt;- full_join(aqi, allData, by = c(State = &quot;Area&quot;))
+allData &lt;- full_join(allData, death, by = c(State = &quot;Area&quot;))
+# Delete unnecessary columns
+allData &lt;- allData[, -c(3:7)]
+# Rename column with appropriate name
+allData &lt;- rename(allData, SmokePerc = Data_Value)</code></pre>
+<p><em>Datasets are loaded, and they are joined by variable ‘state’ since it is a common variable for all four datasets</em><br />
+<em>After the datasets are joined into one, ‘CancerType’, ‘Year’, ‘Sex’, and ‘Race’ columns are dropped since there are no variation in these columns.</em><br />
+<em>The column ‘AgedAdjustedRate’ which contais adjusted age rates that help fair comparisons between groups with different age distribution, was also dropped since it will not be used in data analysis. However, dropping this column might cause some biases because there are definitely higher rate of death in the state having higher percentage of elderly people.</em><br />
+</p>
+</div>
+<div id="summary-statistics" class="section level3">
+<h3>Summary Statistics</h3>
+<pre class="r"><code># Drop NAs in dataset
+allData &lt;- allData %&gt;% drop_na()
+
+# Find number of observations in dataset
+allData %&gt;% n_distinct()</code></pre>
+<pre><code>## [1] 50</code></pre>
+<p><em>After NAs are dropped, there are 50 unique observations in the dataset.</em></p>
+<pre class="r"><code># Find max, min values for numeric variables using
+# filter()
+allData %&gt;% filter(AirQualityIndex == max(AirQualityIndex) | 
+    AirQualityIndex == min(AirQualityIndex))</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   State  AirQualityIndex CaseCount Population SmokePerc DeathCount
+##   &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Hawaii            21.2      4172    7098107      13.4       2798
+## 2 Utah              51.2      3245   14963554       9         2279</code></pre>
+<pre class="r"><code>allData %&gt;% filter(CaseCount == max(CaseCount) | CaseCount == 
+    min(CaseCount))</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   State      AirQualityIndex CaseCount Population SmokePerc DeathCount
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Wyoming                 45      1444    2913563      18.8       1078
+## 2 California              46     85144  194467581      11.2      60423</code></pre>
+<pre class="r"><code>allData %&gt;% filter(Population == max(Population) | 
+    Population == min(Population))</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   State      AirQualityIndex CaseCount Population SmokePerc DeathCount
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Wyoming                 45      1444    2913563      18.8       1078
+## 2 California              46     85144  194467581      11.2      60423</code></pre>
+<pre class="r"><code>allData %&gt;% filter(SmokePerc == max(SmokePerc) | SmokePerc == 
+    min(SmokePerc))</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   State         AirQualityIndex CaseCount Population SmokePerc DeathCount
+##   &lt;chr&gt;                   &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 West Virginia            47.6     10444    9193313      25.2       7155
+## 2 Utah                     51.2      3245   14963554       9         2279</code></pre>
+<pre class="r"><code>allData %&gt;% filter(DeathCount == max(DeathCount) | 
+    DeathCount == min(DeathCount))</code></pre>
+<pre><code>## # A tibble: 2 x 6
+##   State      AirQualityIndex CaseCount Population SmokePerc DeathCount
+##   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Wyoming                 45      1444    2913563      18.8       1078
+## 2 California              46     85144  194467581      11.2      60423</code></pre>
+<p><em>The Hawaii has the lowest Air Quality Index of 21.2, and the Utah has the highest Air Quality Index of 51.2.</em><br />
+<em>The Wyoming has the lowest new cancer cases of 1444, and the California has the highest new cancer cases of 85144.</em><br />
+<em>The Wyoming has the smallest population size of 2913563, and the California has the largest population size of 194467581.</em><br />
+<em>The Utah has the lowest cigarette usage of 9.0, and the West Virginia has the highest cigarette usage of 25.2%.</em><br />
+<em>The Wyoming has the lowest number of death of 1078, and the California has the highest number of death of 60423.</em><br />
+</p>
+<pre class="r"><code># Find mean of numeric variables using select()
+allData %&gt;% select_if(is.numeric) %&gt;% colMeans()</code></pre>
+<pre><code>## AirQualityIndex       CaseCount      Population       SmokePerc      DeathCount 
+##          42.214       22126.400    32000696.400          16.648       15180.860</code></pre>
+<pre class="r"><code># Find sd of numeric variables
+allData %&gt;% select_if(is.numeric) %&gt;% summarise(sd(AirQualityIndex), 
+    sd(CaseCount), sd(Population), sd(SmokePerc), sd(DeathCount))</code></pre>
+<pre><code>## # A tibble: 1 x 5
+##   `sd(AirQualityI… `sd(CaseCount)` `sd(Population)` `sd(SmokePerc)`
+##              &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;           &lt;dbl&gt;
+## 1             5.26          21029.        35985449.            3.32
+## # … with 1 more variable: `sd(DeathCount)` &lt;dbl&gt;</code></pre>
+<p><em>Overall, the average AQI is 42.21, the average number of individual with lung cancer is 22126, the average size of population is 32000696, the average percentage of people who smoke is 16.65%, and the average number of death is 15180.</em><br />
+<em>The overall standard deviations are also calculated for the numeric variables. The std of AQI is 5.26, the std of new lung cancer cases is 21029.3, the std of population is 35985449, the std of smoke percentage is 3.32, and the std of number of death is 14323.6.</em><br />
+</p>
+<pre class="r"><code># Create categorical variable based on air quality
+# index using mutate()
+allData &lt;- allData %&gt;% mutate(AQI_category = cut(AirQualityIndex, 
+    breaks = c(0, 30, 60), labels = c(&quot;good&quot;, &quot;moderate&quot;)))
+
+# Number of observations in each AQI category
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(n = n())</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   AQI_category     n
+##   &lt;fct&gt;        &lt;int&gt;
+## 1 good             2
+## 2 moderate        48</code></pre>
+<p><em>The categorical variable is created based on the AQI. States where index lower than 30 marked as ‘good’, and the states where index higher than 30 is marked as ‘moderate’. </em><br />
+<em>Two areas (Hawaii and Alaska) are marked as ‘good’, and other 48 states are maked as ‘moderate’.</em><br />
+</p>
+<pre class="r"><code># Group by AQI and get case count statistics
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(AvgCaseCount = mean(CaseCount), 
+    sd = sd(CaseCount), min_case = min(CaseCount), 
+    max_case = max(CaseCount)) %&gt;% arrange(AvgCaseCount)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   AQI_category AvgCaseCount     sd min_case max_case
+##   &lt;fct&gt;               &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 good                2978.  1688.     1785     4172
+## 2 moderate           22924. 21089.     1444    85144</code></pre>
+<p><em>For areas where AQI is ‘good’, the minimum case count is 1785 and the maximum case count is 4172. The average lung cancer case is 2978.5 with standard deviation of 1687.8.</em><br />
+<em>For areas where AQI is ‘moderate’, the minimum case count is 1444 and the maximum case count is 85144. The average lung cancer case is 22924.23 with standard deviation of 21088.795.</em><br />
+</p>
+<pre class="r"><code># Group by AQI and get population statistics
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(AvgPop = mean(Population), 
+    sd = sd(Population), min_pop = min(Population), 
+    max_pop = max(Population)) %&gt;% arrange(AvgPop)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   AQI_category    AvgPop        sd min_pop   max_pop
+##   &lt;fct&gt;            &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+## 1 good          5395148   2408348. 3692189   7098107
+## 2 moderate     33109261. 36311940. 2913563 194467581</code></pre>
+<p><em>For areas where AQI is ‘good’, the minimum population size is 3692189 and the maximum is 7098107. The average population size is 5395148 with standard deviation of 2408348.</em><br />
+<em>For areas where AQI is ‘moderate’, the minimum population size is 2913563 and the maximum is 194467581. The average population size is 33109261 with standard deviation of 36311940.</em><br />
+</p>
+<pre class="r"><code># Group by AQI and get air quality statistics
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(AvgAQI = mean(AirQualityIndex), 
+    sd = sd(AirQualityIndex), min_AQI = min(AirQualityIndex), 
+    max_AQI = max(AirQualityIndex)) %&gt;% arrange(AvgAQI)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   AQI_category AvgAQI    sd min_AQI max_AQI
+##   &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 good           25.2  5.59    21.2    29.1
+## 2 moderate       42.9  3.91    33.5    51.2</code></pre>
+<p><em>For areas where AQI is ‘good’, the minimum AQI is 21.2 and the maximum is 29.1. The average AQI is 25.150 with standard deviation of 5.59.</em><br />
+<em>For areas where AQI is ‘moderate’, the minimum AQI is 33.5 and the maximum is 51.2. The average AQI is 42.925 with standard deviation of 3.91.</em><br />
+</p>
+<pre class="r"><code># Group by AQI and get smoke percentage statistics
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(`AvgSmoke%` = mean(SmokePerc), 
+    sd = sd(SmokePerc), `min_smoke%` = min(SmokePerc), 
+    `max_smoke%` = max(SmokePerc)) %&gt;% arrange(&quot;AvgSmoke%&quot;)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   AQI_category `AvgSmoke%`    sd `min_smoke%` `max_smoke%`
+##   &lt;fct&gt;              &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1 good                16.2  4.03         13.4         19.1
+## 2 moderate            16.7  3.33          9           25.2</code></pre>
+<p><em>For areas where AQI is ‘good’, the minimum smoking percentage is 13.4% and the maximum is 19.1%. The average smoking is 16.25% with standard deviation of 4.03.</em><br />
+<em>For areas where AQI is ‘moderate’, the minimum smoking percentage is 9.0% and the maximum is 25.2%. The average smoking is 16.66% with standard deviation of 3.33.</em><br />
+</p>
+<pre class="r"><code># Group by AQI and get death count statistics
+allData %&gt;% group_by(AQI_category) %&gt;% summarise(AvgDeath = mean(DeathCount), 
+    sd = sd(DeathCount), min_death = min(CaseCount), 
+    max_death = max(DeathCount)) %&gt;% arrange(AvgDeath)</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   AQI_category AvgDeath     sd min_death max_death
+##   &lt;fct&gt;           &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 good            2000   1129.      1785      2798
+## 2 moderate       15730. 14359.      1444     60423</code></pre>
+<p><em>For areas where AQI is ‘good’, the minimum death count is 1785, and the maximum is 2798. The average number of death is 2000 with standard deviation of 1128.5.</em><br />
+<em>For areas where AQI is ‘moderate’, the minimum death count is 1444, and the maximum is 60423. The average number of death is 15730.06 with standard deviation of 14358.52.</em><br />
+</p>
+</div>
+<div id="visualization" class="section level3">
+<h3>Visualization</h3>
+<div id="correlation-heatmap" class="section level4">
+<h4>Correlation Heatmap</h4>
+<pre class="r"><code># Correlation heatmap
+allData_num &lt;- allData %&gt;% column_to_rownames(&quot;State&quot;) %&gt;% 
+    select_if(is.numeric) %&gt;% cor()
+
+# Create correlation heatmap
+cor_data &lt;- allData_num %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;)
+cor_data %&gt;% ggplot(aes(var1, var2, fill = correlation)) + 
+    geom_tile() + scale_fill_gradient2(low = &quot;blue&quot;, 
+    mid = &quot;white&quot;, high = &quot;red&quot;) + geom_text(aes(label = round(correlation, 
+    2)), color = &quot;black&quot;, size = 3)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" />
+<em>According to the correlation heatmap, there are strong realationship between population and number of cases. This seems obvious since the number of people with cancer will be higher in bigger population.</em><br />
+<em>There are strong positive correlation between population and death count, which is also obvious as above. The possible error source is lack of age adjusted rate, which has been removed from the dataset. If we don;t consider the age adjusted rate, there are higher chance of getting biased results due to differences in age distribution.</em></p>
+</div>
+<div id="scatterplot-1" class="section level4">
+<h4>Scatterplot 1</h4>
+<pre class="r"><code>allData %&gt;% ggplot(aes(CaseCount, DeathCount)) + labs(x = &quot;Cancer case&quot;, 
+    y = &quot;Death&quot;, title = &quot;Number of cases vs. Number of death due to lung cancer&quot;) + 
+    geom_point(aes(color = AQI_category))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" />
+<em>According to the scatterplot, there is a strong positive correlation between the new lung/bronchus cancers and the number of deaths due to lung/bronchus cancers. It shows the high mortality rate of disease.</em><br />
+<em>States with AQI value ‘good’ tend to have low cancer cases compare to the states with AQI value ‘moderate’, but AQI and number of cases are very weakly associated since there are states with ‘moderate’ AQI having low number of cases.</em><br />
+</p>
+</div>
+<div id="scatterplot-2" class="section level4">
+<h4>Scatterplot 2</h4>
+<pre class="r"><code>new_all &lt;- allData %&gt;% mutate(case_per = ((CaseCount/Population) * 
+    100))
+new_all %&gt;% ggplot(aes(AirQualityIndex, case_per)) + 
+    labs(x = &quot;AQI&quot;, y = &quot;Percent of lung cancer patient in population (%)&quot;, 
+        title = &quot;AQI vs. Percent of new lung cancer cases&quot;) + 
+    geom_point(aes(color = AQI_category))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" />
+<em>The new dataset ‘new_all’ is created, which contains the percent of cancer cases in each population.</em><br />
+<em>According to the plot, there is a slightly positive relationship between AQI and the percent of getting lung/bronchus cancers. States with low AQI tend to have lower chance of getting cancers compare to the states with high AQI.</em><br />
+</p>
+</div>
+</div>
+<div id="pca" class="section level3">
+<h3>PCA</h3>
+<div id="prepare-data-and-perform-pca" class="section level4">
+<h4>Prepare data and perform PCA</h4>
+<pre class="r"><code># Data preparation
+all1 &lt;- allData %&gt;% select(-AQI_category)
+all_num &lt;- all1 %&gt;% select_if(is.numeric) %&gt;% scale
+rownames(all_num) &lt;- all1$State
+
+# Perform PCA
+all_pca &lt;- princomp(all_num)
+
+# Summarize result
+summary(all_pca, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2    Comp.3     Comp.4       Comp.5
+## Standard deviation     1.7227507 1.0587458 0.8621733 0.25640195 0.0458546780
+## Proportion of Variance 0.6056877 0.2287638 0.1517026 0.01341673 0.0004291126
+## Cumulative Proportion  0.6056877 0.8344515 0.9861542 0.99957089 1.0000000000
+## 
+## Loadings:
+##                 Comp.1 Comp.2 Comp.3 Comp.4 Comp.5
+## AirQualityIndex  0.163  0.686  0.709              
+## CaseCount        0.564        -0.166  0.441  0.677
+## Population       0.559               -0.822       
+## SmokePerc       -0.157  0.720 -0.660 -0.141       
+## DeathCount       0.564        -0.177  0.333 -0.733</code></pre>
+<pre class="r"><code># Plot PC scores
+alldf &lt;- data.frame(Name = all1$State, PC1 = all_pca$scores[, 
+    1], PC2 = all_pca$scores[, 2])
+ggplot(alldf, aes(PC1, PC2)) + geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="choose-number-of-principal-components" class="section level4">
+<h4>Choose number of principal components</h4>
+<pre class="r"><code># Decide how many PCs to keep
+eigval &lt;- all_pca$sdev^2
+round(cumsum(eigval)/sum(eigval), 2)</code></pre>
+<pre><code>## Comp.1 Comp.2 Comp.3 Comp.4 Comp.5 
+##   0.61   0.83   0.99   1.00   1.00</code></pre>
+</div>
+<div id="compute-pc-scores" class="section level4">
+<h4>Compute PC scores</h4>
+<pre class="r"><code># highest on PC1
+all_pca$scores[, 1:4] %&gt;% as.data.frame %&gt;% top_n(3, 
+    Comp.1)</code></pre>
+<pre><code>##              Comp.1     Comp.2     Comp.3     Comp.4
+## Florida    4.457229 -0.8041867 -1.1354834  0.8288674
+## Texas      4.126807 -0.7082086 -0.5881192 -0.6475536
+## California 6.370199 -0.8052585  0.3306044 -1.1036757</code></pre>
+<pre class="r"><code># lowest PC1
+all_pca$scores[, 1:4] %&gt;% as.data.frame %&gt;% top_n(-3, 
+    Comp.1)</code></pre>
+<pre><code>##                 Comp.1     Comp.2     Comp.3      Comp.4
+## Hawaii       -1.853506 -3.4595128 -1.8597993  0.03875453
+## Alaska       -2.058217 -1.1933261 -1.8868101 -0.21185083
+## North Dakota -1.780716 -0.1614434 -0.8315748 -0.18872252</code></pre>
+<pre class="r"><code># highest on PC2
+all_pca$scores[, 1:4] %&gt;% as.data.frame %&gt;% top_n(3, 
+    wt = Comp.2)</code></pre>
+<pre><code>##                   Comp.1   Comp.2     Comp.3      Comp.4
+## Kentucky      -0.2124095 2.006947 -0.8503191  0.03369489
+## Indiana        0.3025292 1.678994 -0.2764031  0.01404198
+## West Virginia -1.2214139 2.565331 -0.7561682 -0.27387360</code></pre>
+<pre class="r"><code># lowest on PC2
+all_pca$scores[, 1:4] %&gt;% as.data.frame %&gt;% top_n(3, 
+    wt = desc(Comp.2))</code></pre>
+<pre><code>##                   Comp.1    Comp.2     Comp.3      Comp.4
+## Hawaii     -1.8535055402 -3.459513 -1.8597993  0.03875453
+## Alaska     -2.0582170947 -1.193326 -1.8868101 -0.21185083
+## Washington -0.0001758697 -2.155324 -0.2510618  0.10027831</code></pre>
+</div>
+<div id="plot-of-loadings" class="section level4">
+<h4>Plot of loadings</h4>
+<pre class="r"><code># Plot of loadings
+all_pca$loadings[1:5, 1:2] %&gt;% as.data.frame %&gt;% rownames_to_column %&gt;% 
+    ggplot() + geom_hline(aes(yintercept = 0), lty = 2) + 
+    geom_vline(aes(xintercept = 0), lty = 2) + ylab(&quot;PC2&quot;) + 
+    xlab(&quot;PC1&quot;) + geom_segment(aes(x = 0, y = 0, xend = Comp.1, 
+    yend = Comp.2), arrow = arrow(), col = &quot;red&quot;) + 
+    geom_label(aes(x = Comp.1 * 1.1, y = Comp.2 * 1.1, 
+        label = rowname))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>## R version 3.6.1 (2019-07-05)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Ubuntu 18.04.5 LTS
+## 
+## Matrix products: default
+## BLAS:   /stor/system/opt/R/R-3.6.1/lib/R/lib/libRblas.so
+## LAPACK: /stor/system/opt/R/R-3.6.1/lib/R/lib/libRlapack.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] forcats_0.5.0   stringr_1.4.0   dplyr_1.0.2     purrr_0.3.4    
+## [5] readr_1.4.0     tidyr_1.1.2     tibble_3.0.4    ggplot2_3.3.3  
+## [9] tidyverse_1.3.0
+## 
+## loaded via a namespace (and not attached):
+##  [1] tidyselect_1.1.0  xfun_0.20         haven_2.3.1       colorspace_2.0-0 
+##  [5] vctrs_0.3.6       generics_0.1.0    htmltools_0.5.0   yaml_2.2.1       
+##  [9] utf8_1.1.4        rlang_0.4.10      pillar_1.4.7      glue_1.4.2       
+## [13] withr_2.3.0       DBI_1.1.0         dbplyr_2.0.0      modelr_0.1.8     
+## [17] readxl_1.3.1      lifecycle_0.2.0   munsell_0.5.0     blogdown_0.20    
+## [21] gtable_0.3.0      cellranger_1.1.0  rvest_0.3.6       evaluate_0.14    
+## [25] labeling_0.4.2    knitr_1.30        fansi_0.4.1       broom_0.7.3      
+## [29] Rcpp_1.0.5        scales_1.1.1      backports_1.2.1   formatR_1.7      
+## [33] jsonlite_1.7.2    farver_2.0.3      fs_1.5.0          hms_0.5.3        
+## [37] digest_0.6.27     stringi_1.5.3     bookdown_0.21     grid_3.6.1       
+## [41] cli_2.2.0         tools_3.6.1       magrittr_2.0.1    crayon_1.3.4     
+## [45] pkgconfig_2.0.3   ellipsis_0.3.1    xml2_1.3.2        reprex_0.3.0     
+## [49] lubridate_1.7.9.2 assertthat_0.2.1  rmarkdown_2.6     httr_1.4.2       
+## [53] rstudioapi_0.13   R6_2.5.0          compiler_3.6.1</code></pre>
+<pre><code>## [1] &quot;2021-05-09 17:53:28 CDT&quot;</code></pre>
+<pre><code>##                                        sysname 
+##                                        &quot;Linux&quot; 
+##                                        release 
+##                           &quot;4.15.0-142-generic&quot; 
+##                                        version 
+## &quot;#146-Ubuntu SMP Tue Apr 13 01:11:19 UTC 2021&quot; 
+##                                       nodename 
+##                   &quot;educcomp01.ccbb.utexas.edu&quot; 
+##                                        machine 
+##                                       &quot;x86_64&quot; 
+##                                          login 
+##                                      &quot;unknown&quot; 
+##                                           user 
+##                                      &quot;ys22477&quot; 
+##                                 effective_user 
+##                                      &quot;ys22477&quot;</code></pre>
+</div>
+</div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Project 3</title>
+    <link>/</link>
+    <description>Recent content on Project 3</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 09 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>My Post</title>
+      <link>/post/2021/05/09/my-post/</link>
+      <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/09/my-post/</guid>
+      <description> THIS IS AN EMPTY POST~ I’m too lazy to post something here  </description>
+    </item>
+    
+    <item>
+      <title>Cancer and Air Pollution</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Project 1 - Yujin Song Introduction One of my family member was diagnosed with lung cancer 2 years ago. I was very surprised by that because she was not a smoker, heavy drinker, or having a family history of cancer. Since her life was not even close to all the high risk factors of lung cancer, I thought air pollution might have some effects on her disease. Therefore, I decided to find whether there is a relationship between air pollution and the lung cancer.</description>
+    </item>
+    
+    <item>
+      <title>Income Evaluation</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Project 2 - Yujin Song Dataset Preparation library(dplyr) library(tidyverse) library(tidyr) income_evaluation &amp;lt;- read_csv(&amp;quot;income_evaluation.csv&amp;quot;, col_types = cols(fnlwgt = col_skip(), `capital-gain` = col_skip(), `capital-loss` = col_skip())) # Rename columns income_evaluation &amp;lt;- income_evaluation %&amp;gt;% rename(eduNum = &amp;quot;education-num&amp;quot;, hrsPerWeek = &amp;quot;hours-per-week&amp;quot;, maritalStatus = &amp;quot;marital-status&amp;quot;, nativeCountry = &amp;quot;native-country&amp;quot;) # Replace ? values to NAs income &amp;lt;- income_evaluation %&amp;gt;% mutate_all(~ifelse(.x == &amp;quot;?&amp;quot;, NA, .x)) For this project, the dataset ‘income’ was used. The dataset contains total 32,561 observations on 12 variables.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/projects/</guid>
+      <description> Check out some of my coding projects below:
+ Wrangling &amp;amp; Exploratory Data Analysis
+ Modeling, Inference, Prediction
+  -- </description>
+    </item>
+    
+    <item>
+      <title>Resume</title>
+      <link>/resume/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/</guid>
+      <description>    </description>
+    </item>
+    
+  </channel>
+</rss>

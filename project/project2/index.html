@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Yujin Song" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Income Evaluation</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Income Evaluation</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="project-2---yujin-song" class="section level2">
+<h2>Project 2 - Yujin Song</h2>
+<div id="dataset-preparation" class="section level3">
+<h3>Dataset Preparation</h3>
+<pre class="r"><code>library(dplyr)
+library(tidyverse)
+library(tidyr)
+income_evaluation &lt;- read_csv(&quot;income_evaluation.csv&quot;, 
+    col_types = cols(fnlwgt = col_skip(), `capital-gain` = col_skip(), 
+        `capital-loss` = col_skip()))
+# Rename columns
+income_evaluation &lt;- income_evaluation %&gt;% rename(eduNum = &quot;education-num&quot;, 
+    hrsPerWeek = &quot;hours-per-week&quot;, maritalStatus = &quot;marital-status&quot;, 
+    nativeCountry = &quot;native-country&quot;)
+# Replace ? values to NAs
+income &lt;- income_evaluation %&gt;% mutate_all(~ifelse(.x == 
+    &quot;?&quot;, NA, .x))</code></pre>
+<p><em>For this project, the dataset ‘income’ was used. The dataset contains total 32,561 observations on 12 variables.</em><br />
+<em>The ‘age’ is participants’ age, the ‘workclass’ is participants’ working status (self employed, private, etc), the ‘education’ is the highest level of education participants have, the ‘eduNum’ is total number of years of education, the ‘maritalStatus’ is participants’ marital status (married, never-married, etc), occupation is type of jobs (sales, professional, tech-support, etc), the relationship is participants’ position in their family (husband, own-child, unmarried, etc), the ‘race’ is participants’ races, the ‘sex’ is their gender, the ‘hrsPerWeek’ is total number of hours they work in a week, the ‘nativeCountry’ is where they originally came from, and the ‘income’ is whether income is higher or lower than the 50K.</em><br />
+<em>The age, eduNum, and hrsPerWeek are the numeric variables, the income is a binary variable, and everything else is categorical variables.</em><br />
+</p>
+</div>
+<div id="part-1" class="section level3">
+<h3>Part 1</h3>
+<pre class="r"><code># MANOVA
+manova_income &lt;- manova(cbind(eduNum, hrsPerWeek) ~ 
+    race, data = income)
+summary(manova_income)</code></pre>
+<pre><code>##              Df   Pillai approx F num Df den Df    Pr(&gt;F)    
+## race          4 0.014103     57.8      8  65112 &lt; 2.2e-16 ***
+## Residuals 32556                                              
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Univariate ANOVA
+summary.aov(manova_income)</code></pre>
+<pre><code>##  Response eduNum :
+##                Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## race            4   2591  647.78  99.048 &lt; 2.2e-16 ***
+## Residuals   32556 212920    6.54                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response hrsPerWeek :
+##                Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+## race            4   14842  3710.5  24.408 &lt; 2.2e-16 ***
+## Residuals   32556 4949223   152.0                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Post-hoc t-tests
+pairwise.t.test(income$eduNum, income$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  income$eduNum and income$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other  
+## Asian-Pac-Islander &lt; 2e-16            -                  -       -      
+## Black              0.252              &lt; 2e-16            -       -      
+## Other              0.027              &lt; 2e-16            6.8e-05 -      
+## White              1.7e-08            &lt; 2e-16            &lt; 2e-16 &lt; 2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(income$hrsPerWeek, income$race, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  income$hrsPerWeek and income$race 
+## 
+##                    Amer-Indian-Eskimo Asian-Pac-Islander Black   Other  
+## Asian-Pac-Islander 0.92122            -                  -       -      
+## Black              0.02663            0.00011            -       -      
+## Other              0.57161            0.43370            0.18045 -      
+## White              0.36201            0.14912            &lt; 2e-16 0.10489
+## 
+## P value adjustment method: none</code></pre>
+<p><em>A MANOVA test was conducted to see whether number of years of education or working hours per week differ by race.</em><br />
+<em>According to the MANOVA test, we can conclude that there is a significant mean difference in either education years or weekly working hours based on the race, Pillai trace=0.0141, pseudo F(8,65112) = 57.8, p &lt; 0.0001.</em><br />
+<em>Univariate ANOVAs for each dependent variable were conducted as follow-up tests to the MANOVA.</em><br />
+<em>The univariate ANOVAs for eduNum and hrsPerWeek are F(4,32556)=99.048, p &lt; 0.0001 and F(4,32556)=24.408, p &lt; 0.0001, respectively.</em><br />
+<em>Post hoc analysis was performed conducting pairwise comparisons to determine which races differed in education years and working hours per week.</em><br />
+<em>For number of years of education, there were significant difference between all races except Black/Amer-Indian-Eskimo and Other/Amer-Indian-Eskimo. For working hours per week, the only significant difference was shown between White and Black.</em><br />
+<em>The total number of tests conducted is 23: 1 MANOVA, 2 ANOVAs, and 20 t-tests. The bonferroni correction is α=.05/23 = 0.00217.</em><br />
+</p>
+</div>
+<div id="part-2" class="section level3">
+<h3>Part 2</h3>
+<pre class="r"><code># Randomization test
+summary(aov(hrsPerWeek ~ sex, data = income))</code></pre>
+<pre><code>##                Df  Sum Sq Mean Sq F value Pr(&gt;F)    
+## sex             1  261024  261024    1807 &lt;2e-16 ***
+## Residuals   32559 4703041     144                   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># observed F-statistic
+obs_F &lt;- 1807
+
+Fs &lt;- replicate(5000, {
+    new &lt;- income %&gt;% mutate(hrsPerWeek = sample(hrsPerWeek))  #scramble the data
+    # compute new F statistic on scrambled data
+    SSW &lt;- new %&gt;% group_by(sex) %&gt;% summarize(SSW = sum((hrsPerWeek - 
+        mean(hrsPerWeek))^2)) %&gt;% summarize(sum(SSW)) %&gt;% 
+        pull
+    SSB &lt;- new %&gt;% mutate(mean = mean(hrsPerWeek)) %&gt;% 
+        group_by(sex) %&gt;% mutate(groupmean = mean(hrsPerWeek)) %&gt;% 
+        summarize(SSB = sum((mean - groupmean)^2)) %&gt;% 
+        summarize(sum(SSB)) %&gt;% pull
+    (SSB/1)/(SSW/32559)
+})
+
+# plot null distribution and observed F statistic
+
+hist(Fs, prob = T)
+abline(v = obs_F, col = &quot;red&quot;, add = T)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># p-value
+mean(Fs &gt; obs_F)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>The null hypothesis is that there is no significant difference in hrsPerWeek between gender, and the althernative hypothesis is that there is a significant difference in hrsPerWeek between male and female.</em><br />
+<em>The p-value is approximately 0, which indicates that we can reject the null hypothesis.</em><br />
+</p>
+</div>
+<div id="part-3" class="section level3">
+<h3>Part 3</h3>
+<pre class="r"><code>library(lmtest)
+library(sandwich)
+
+# Centering mean for numeric variable
+income$hrs_centered &lt;- income$age - mean(income$age, 
+    na.rm = T)
+# Linear regression
+fit &lt;- lm(hrsPerWeek ~ relationship * hrs_centered, 
+    data = income)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = hrsPerWeek ~ relationship * hrs_centered, data = income)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -56.848  -5.197  -0.525   5.096  66.703 
+## 
+## Coefficients:
+##                                          Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)                             45.089572   0.109308 412.502  &lt; 2e-16
+## relationshipNot-in-family               -4.519204   0.167053 -27.053  &lt; 2e-16
+## relationshipOther-relative              -8.035855   0.408392 -19.677  &lt; 2e-16
+## relationshipOwn-child                   -4.733955   0.336438 -14.071  &lt; 2e-16
+## relationshipUnmarried                   -5.941319   0.226351 -26.248  &lt; 2e-16
+## relationshipWife                        -8.119658   0.312284 -26.001  &lt; 2e-16
+## hrs_centered                            -0.185113   0.008335 -22.210  &lt; 2e-16
+## relationshipNot-in-family:hrs_centered   0.077732   0.012348   6.295 3.11e-10
+## relationshipOther-relative:hrs_centered  0.193900   0.027261   7.113 1.16e-12
+## relationshipOwn-child:hrs_centered       0.700340   0.021598  32.426  &lt; 2e-16
+## relationshipUnmarried:hrs_centered       0.158696   0.018841   8.423  &lt; 2e-16
+## relationshipWife:hrs_centered            0.099472   0.027207   3.656 0.000256
+##                                            
+## (Intercept)                             ***
+## relationshipNot-in-family               ***
+## relationshipOther-relative              ***
+## relationshipOwn-child                   ***
+## relationshipUnmarried                   ***
+## relationshipWife                        ***
+## hrs_centered                            ***
+## relationshipNot-in-family:hrs_centered  ***
+## relationshipOther-relative:hrs_centered ***
+## relationshipOwn-child:hrs_centered      ***
+## relationshipUnmarried:hrs_centered      ***
+## relationshipWife:hrs_centered           ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 11.51 on 32549 degrees of freedom
+## Multiple R-squared:  0.1312, Adjusted R-squared:  0.1309 
+## F-statistic:   447 on 11 and 32549 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code># Plot
+income %&gt;% select(age, relationship, hrsPerWeek) %&gt;% 
+    na.omit %&gt;% ggplot(aes(age, hrsPerWeek, color = relationship)) + 
+    geom_point(alpha = 0.1) + geom_smooth(method = &quot;lm&quot;) + 
+    geom_vline(xintercept = mean(income$age, na.rm = T), 
+        lty = 2) + labs(x = &quot;Age&quot;, y = &quot;Hours of work (hr)&quot;, 
+    title = &quot;Weekly working hours vs. Age&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Check assumptions of linearity, normality, and
+# homoskedasticity
+resids &lt;- fit$residuals
+fitvals &lt;- fit$fitted.values
+# Linearity
+ggplot() + geom_point(aes(fitvals, resids)) + geom_hline(yintercept = 0, 
+    color = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Normality
+ks.test(resids, &quot;pnorm&quot;, mean = 0, sd(resids))</code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.098523, p-value &lt; 2.2e-16
+## alternative hypothesis: two-sided</code></pre>
+<pre class="r"><code># Homoskedasticity
+bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 311.49, df = 11, p-value &lt; 2.2e-16</code></pre>
+<pre class="r"><code># Robust standard errors
+coeftest(fit, vcov = vcovHC(fit))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                           Estimate Std. Error  t value
+## (Intercept)                             45.0895718  0.1027618 438.7777
+## relationshipNot-in-family               -4.5192045  0.1646123 -27.4536
+## relationshipOther-relative              -8.0358548  0.4320193 -18.6007
+## relationshipOwn-child                   -4.7339553  0.4687856 -10.0983
+## relationshipUnmarried                   -5.9413194  0.2014044 -29.4994
+## relationshipWife                        -8.1196584  0.3106750 -26.1355
+## hrs_centered                            -0.1851132  0.0098051 -18.8793
+## relationshipNot-in-family:hrs_centered   0.0777320  0.0151830   5.1197
+## relationshipOther-relative:hrs_centered  0.1938997  0.0340772   5.6900
+## relationshipOwn-child:hrs_centered       0.7003401  0.0315796  22.1770
+## relationshipUnmarried:hrs_centered       0.1586961  0.0220245   7.2054
+## relationshipWife:hrs_centered            0.0994722  0.0305998   3.2508
+##                                          Pr(&gt;|t|)    
+## (Intercept)                             &lt; 2.2e-16 ***
+## relationshipNot-in-family               &lt; 2.2e-16 ***
+## relationshipOther-relative              &lt; 2.2e-16 ***
+## relationshipOwn-child                   &lt; 2.2e-16 ***
+## relationshipUnmarried                   &lt; 2.2e-16 ***
+## relationshipWife                        &lt; 2.2e-16 ***
+## hrs_centered                            &lt; 2.2e-16 ***
+## relationshipNot-in-family:hrs_centered  3.078e-07 ***
+## relationshipOther-relative:hrs_centered 1.281e-08 ***
+## relationshipOwn-child:hrs_centered      &lt; 2.2e-16 ***
+## relationshipUnmarried:hrs_centered      5.911e-13 ***
+## relationshipWife:hrs_centered            0.001152 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Uncorrected SEs
+summary(fit)$coef[, 1:2]</code></pre>
+<pre><code>##                                            Estimate  Std. Error
+## (Intercept)                             45.08957180 0.109307502
+## relationshipNot-in-family               -4.51920450 0.167052702
+## relationshipOther-relative              -8.03585484 0.408392252
+## relationshipOwn-child                   -4.73395534 0.336438009
+## relationshipUnmarried                   -5.94131936 0.226351049
+## relationshipWife                        -8.11965838 0.312284231
+## hrs_centered                            -0.18511324 0.008334622
+## relationshipNot-in-family:hrs_centered   0.07773204 0.012347529
+## relationshipOther-relative:hrs_centered  0.19389967 0.027261187
+## relationshipOwn-child:hrs_centered       0.70034012 0.021597859
+## relationshipUnmarried:hrs_centered       0.15869614 0.018841453
+## relationshipWife:hrs_centered            0.09947222 0.027206751</code></pre>
+<pre class="r"><code># Corrected/robust SE
+coeftest(fit, vcov = vcovHC(fit))[, 1:2]</code></pre>
+<pre><code>##                                            Estimate  Std. Error
+## (Intercept)                             45.08957180 0.102761759
+## relationshipNot-in-family               -4.51920450 0.164612263
+## relationshipOther-relative              -8.03585484 0.432019345
+## relationshipOwn-child                   -4.73395534 0.468785592
+## relationshipUnmarried                   -5.94131936 0.201404426
+## relationshipWife                        -8.11965838 0.310675002
+## hrs_centered                            -0.18511324 0.009805094
+## relationshipNot-in-family:hrs_centered   0.07773204 0.015183026
+## relationshipOther-relative:hrs_centered  0.19389967 0.034077152
+## relationshipOwn-child:hrs_centered       0.70034012 0.031579579
+## relationshipUnmarried:hrs_centered       0.15869614 0.022024462
+## relationshipWife:hrs_centered            0.09947222 0.030599765</code></pre>
+<p><em>The mean/predicted weekly working hours of people with average age is 45.089 hrs.</em><br />
+<em>The hours of working per week has a negative association with the age.</em><br />
+<em>For people with average age, the average weekly working hours for people not in family is 4.519 less than others.</em><br />
+<em>For people with average age, the average weekly working hours for people Other-relative is 8.036 less than others.</em><br />
+<em>For people with average age, the average weekly working hours for people who owned child is 4.734 less than others.</em><br />
+<em>For people with average age, the average weekly working hours for people who unmarried is 5.941 less than others.</em><br />
+<em>For people with average age, the average weekly working hours for wives is 8.119 less than others.</em><br />
+<em>According to the assumptions tests, the data is heteroskedastic and not normal.</em><br />
+<em>Based on the robust standard errors, the average working hours of people in all kinds of relationships are significantly differenct each other (p &lt; 0.05).</em><br />
+<em>Compare to the uncorrected standard errors, they are slightly increased after correction.</em><br />
+</p>
+</div>
+<div id="part-4" class="section level3">
+<h3>Part 4</h3>
+<pre class="r"><code># Bootstrapping
+samp_distn &lt;- replicate(5000, {
+    boot_dat &lt;- income[sample(nrow(income), replace = TRUE), 
+        ]
+    fit2 &lt;- lm(hrsPerWeek ~ relationship * hrs_centered, 
+        data = boot_dat)
+    coef(fit2)
+})
+
+## Estimated SEs
+samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) relationshipNot-in-family relationshipOther-relative
+## 1   0.1010564                 0.1630547                  0.4281504
+##   relationshipOwn-child relationshipUnmarried relationshipWife hrs_centered
+## 1             0.4650381             0.2011332        0.3125392  0.009711921
+##   relationshipNot-in-family:hrs_centered
+## 1                             0.01517133
+##   relationshipOther-relative:hrs_centered relationshipOwn-child:hrs_centered
+## 1                              0.03327902                         0.03083583
+##   relationshipUnmarried:hrs_centered relationshipWife:hrs_centered
+## 1                          0.0219834                    0.03029336</code></pre>
+<p><em>Compare to the original SEs and robust SEs, the standard errors are much larger after the bootstrapping.</em> </p>
+</div>
+<div id="part-5" class="section level3">
+<h3>Part 5</h3>
+<pre class="r"><code>income2 &lt;- income %&gt;% select(&quot;sex&quot;, &quot;age&quot;, &quot;income&quot;) %&gt;% 
+    na.omit()
+# Create binary column
+income2 &lt;- income2 %&gt;% mutate(income_b = ifelse(income == 
+    &quot;&lt;=50K&quot;, 1, 0))
+
+# Predict income from gender and race
+fit3 &lt;- glm(income_b ~ sex + age, data = income2, family = &quot;binomial&quot;)
+coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##               Estimate Std. Error z value  Pr(&gt;|z|)    
+## (Intercept)  3.6549842  0.0533277  68.538 &lt; 2.2e-16 ***
+## sexMale     -1.2484117  0.0349247 -35.746 &lt; 2.2e-16 ***
+## age         -0.0390293  0.0010022 -38.942 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Logistic regression matrix
+income3 &lt;- income2 %&gt;% mutate(prob = predict(fit3, 
+    type = &quot;response&quot;), prediction = ifelse(prob &gt; 
+    0.5, 1, 0))
+classify &lt;- income3 %&gt;% transmute(prob, prediction, 
+    truth = income2$income_b)
+table(prediction = classify$prediction, truth = classify$truth) %&gt;% 
+    addmargins()</code></pre>
+<pre><code>##           truth
+## prediction     0     1   Sum
+##        0     404   965  1369
+##        1    7437 23755 31192
+##        Sum  7841 24720 32561</code></pre>
+<pre class="r"><code># Accuracy
+(404 + 23755)/32561</code></pre>
+<pre><code>## [1] 0.7419612</code></pre>
+<pre class="r"><code># Sensitivity (TPR)
+23755/24720</code></pre>
+<pre><code>## [1] 0.9609628</code></pre>
+<pre class="r"><code># Specificity (TNR)
+404/7841</code></pre>
+<pre><code>## [1] 0.05152404</code></pre>
+<pre class="r"><code># Precision (PPV)
+23755/31192</code></pre>
+<pre><code>## [1] 0.7615735</code></pre>
+<pre class="r"><code># Density plot of the log-odds
+income3$logit &lt;- predict(fit3, type = &quot;link&quot;)
+income3 %&gt;% ggplot() + geom_density(aes(logit, color = income, 
+    fill = income), alpha = 0.4) + theme(legend.position = c(0.85, 
+    0.85)) + geom_vline(xintercept = 0) + xlab(&quot;logit (log-odds)&quot;) + 
+    geom_rug(aes(logit, color = income)) + geom_text(x = 0.2, 
+    y = 0.4, label = &quot;TN = 404&quot;) + geom_text(x = -0.2, 
+    y = 0.05, label = &quot;FN = 965&quot;) + geom_text(x = 1, 
+    y = 0.1, label = &quot;FP = 7437&quot;) + geom_text(x = 2, 
+    y = 0.2, label = &quot;TP = 23755&quot;) + labs(x = &quot;log-odd&quot;, 
+    y = &quot;Density&quot;, title = &quot;Density plot of log odds&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># ROC curve
+library(plotROC)
+pr = predict(fit3, type = &quot;response&quot;)
+rocplot &lt;- ggplot(income2) + geom_roc(aes(d = income_b, 
+    m = pr), n.cuts = 0)
+rocplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># AUC
+calc_auc(rocplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7236795</code></pre>
+<p><em>According to the regression, both gender and age have significant effects on the income.</em><br />
+<em>Controlling for age, the income between male and female are significantly different.</em><br />
+<em>Controlling for gender, the income is significantly different by age.</em><br />
+<em>Accuracy, sensitivity (TPR), specificity (TNR), and precision (PPV) are 0.742, 0.961, 0.052, and 0.762, respectively.</em><br />
+<em>According to the calculated AUC, the malignant (income &lt;= 50K) will have higher scores than benign (income &gt;50K) for 72.4% of time.</em><br />
+<em>Probability that a randomly selected person with income less than 50K has a higher predicted probability than a randomly selected person with income higher than 50K.</em></p>
+</div>
+<div id="part-6" class="section level3">
+<h3>Part 6</h3>
+<div id="in-sample-classification-diagnostics" class="section level4">
+<h4>In-sample classification diagnostics</h4>
+<pre class="r"><code># Logistic regression to predict income based on
+# all other variables
+income4 &lt;- income %&gt;% select(-maritalStatus, -occupation, 
+    -nativeCountry) %&gt;% na.omit()
+income4 &lt;- income4 %&gt;% mutate(income_b = ifelse(income == 
+    &quot;&lt;=50K&quot;, 1, 0))
+
+fit4 &lt;- glm(income_b ~ age + workclass + education + 
+    eduNum + relationship + race + sex + hrsPerWeek, 
+    data = income4, family = &quot;binomial&quot;)
+
+prob2 &lt;- predict(fit4, type = &quot;response&quot;)
+
+# In-sample classification diagnostics
+class_diag(prob2, income4$income_b)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.8243775 0.9229469 0.5270588 0.8547863 0.8760962</code></pre>
+<p><em>The accuracy, sensitivity, specificity, precision, and AUC for the in-sample classification are 0.824, 0.923, 0.527, 0.855, and 0.876, respectively.</em><br />
+<em>According to the AUC, there are 87.6% chance that randomly selected person with income less than 50K (malignant).</em><br />
+</p>
+</div>
+<div id="k-fold-cv" class="section level4">
+<h4>K-fold CV</h4>
+<pre class="r"><code># 10-fold CV
+set.seed(1234)
+k = 10
+
+data &lt;- income4[sample(nrow(income4)), ]
+folds &lt;- cut(seq(1:nrow(income4)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    ## Create training and test sets
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    truth &lt;- test$income_b
+    
+    ## Train model on training set
+    fit &lt;- glm(income_b ~ age + workclass + education + 
+        eduNum + relationship + race + sex + hrsPerWeek, 
+        data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    
+    ## Test model on test set (save all k results)
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.8237268 0.9224707 0.5259725 0.8544215 0.8752349</code></pre>
+<p><em>The accuracy, sensitivity, specificity, precision, and AUC for the 10-fold cross validation are 0.824, 0.922, 0.526, 0.854, and 0.875, respectively.</em><br />
+<em>AUC for 10-fold CV (0.875) is approximately same as the original AUC value.</em><br />
+</p>
+</div>
+<div id="lasso" class="section level4">
+<h4>LASSO</h4>
+<pre class="r"><code># LASSO
+library(glmnet)
+y &lt;- as.matrix(income4$income_b)
+
+x &lt;- model.matrix(income_b ~ age + workclass + education + 
+    eduNum + relationship + race + sex + hrsPerWeek, 
+    data = income4)[, -1]
+
+cv &lt;- cv.glmnet(x, y)
+
+cv &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(x, y, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 36 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                     s0
+## (Intercept)                 7.02467091
+## age                        -0.02941231
+## workclassLocal-gov          .         
+## workclassNever-worked       .         
+## workclassPrivate            .         
+## workclassSelf-emp-inc      -0.34556269
+## workclassSelf-emp-not-inc   0.34775797
+## workclassState-gov          0.03855394
+## workclassWithout-pay        .         
+## education11th               .         
+## education12th               .         
+## education1st-4th            .         
+## education5th-6th            .         
+## education7th-8th            .         
+## education9th                .         
+## educationAssoc-acdm         0.16331663
+## educationAssoc-voc          .         
+## educationBachelors          .         
+## educationDoctorate          .         
+## educationHS-grad            0.03607100
+## educationMasters           -0.03280631
+## educationPreschool          .         
+## educationProf-school       -0.19126863
+## educationSome-college       .         
+## eduNum                     -0.33642538
+## relationshipNot-in-family   1.58188829
+## relationshipOther-relative  1.44027629
+## relationshipOwn-child       2.34539055
+## relationshipUnmarried       1.55936014
+## relationshipWife           -1.06008897
+## raceAsian-Pac-Islander      .         
+## raceBlack                   .         
+## raceOther                   .         
+## raceWhite                  -0.14334721
+## sexMale                    -0.68176568
+## hrsPerWeek                 -0.02713623</code></pre>
+<p><em>According to the LASSO, age, gender, race (White), some relationships (not-in-family, other-relative, own-child, unmarried, wife), some education (HS-grad, master, prof-school, assoc-acdm), hours of working, and some work classes (Self-emp-inc, Self-emp-not-inc) are most predictive of income.</em><br />
+</p>
+</div>
+<div id="folds-cv-using-selected-variables" class="section level4">
+<h4>10-folds CV using selected variables</h4>
+<pre class="r"><code># 10-folds CV using relationship, sex, hrsPerWeek,
+# race
+set.seed(1234)
+k = 10
+
+income5 &lt;- income4 %&gt;% mutate(m = ifelse(income4$sex == 
+    &quot;Male&quot;, 1, 0), white = ifelse(income4$race == &quot;White&quot;, 
+    1, 0))
+
+data &lt;- income5[sample(nrow(income5)), ]
+folds &lt;- cut(seq(1:nrow(income5)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    ## Create training and test sets
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    truth &lt;- test$income_b
+    
+    ## Train model on training set
+    fit &lt;- glm(income_b ~ age + relationship + white + 
+        m + hrsPerWeek, data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    
+    ## Test model on test set (save all k results)
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec      ppv       auc
+## 1 0.7670624 0.9079201 0.3424558 0.806337 0.8225796</code></pre>
+<p><em>10-fold CV was conducted using age, relationship, white (race), working hours in a week, and male (gender). Compare to the AUC values for the original and the 10-fold CV using all variables, the AUC value for the 10-fold CV using selected variables is slightly less (0.823).</em></p>
+</div>
+</div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

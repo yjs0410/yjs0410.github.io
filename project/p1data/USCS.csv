@@ -1,0 +1,52 @@
+﻿Area,CancerType,Year,Sex,Race,AgeAdjustedRate,CaseCount,Population
+Wyoming,Lung and Bronchus,2013-2017,Male and Female,All Races,42.2,1444,2913563
+Nevada,Lung and Bronchus,2013-2017,Male and Female,All Races,53.3,8721,14356827
+Rhode Island,Lung and Bronchus,2013-2017,Male and Female,All Races,70.3,4712,5280861
+Oregon,Lung and Bronchus,2013-2017,Male and Female,All Races,54.1,13705,20141928
+Colorado,Lung and Bronchus,2013-2017,Male and Female,All Races,41.4,11751,27230630
+Minnesota,Lung and Bronchus,2013-2017,Male and Female,All Races,56.1,18138,27439282
+Montana,Lung and Bronchus,2013-2017,Male and Female,All Races,53.7,3689,5159911
+Georgia,Lung and Bronchus,2013-2017,Male and Female,All Races,62.8,33717,50941256
+Texas,Lung and Bronchus,2013-2017,Male and Female,All Races,50.6,66583,137213629
+Maryland,Lung and Bronchus,2013-2017,Male and Female,All Races,56.4,19392,29898169
+Idaho,Lung and Bronchus,2013-2017,Male and Female,All Races,49.5,4657,8296366
+New Mexico,Lung and Bronchus,2013-2017,Male and Female,All Races,38.5,4910,10459529
+Utah,Lung and Bronchus,2013-2017,Male and Female,All Races,26,3245,14963554
+California,Lung and Bronchus,2013-2017,Male and Female,All Races,41.5,85144,194467581
+Alaska,Lung and Bronchus,2013-2017,Male and Female,All Races,55.8,1785,3692189
+Hawaii,Lung and Bronchus,2013-2017,Male and Female,All Races,45.7,4172,7098107
+Virginia,Lung and Bronchus,2013-2017,Male and Female,All Races,56.4,27119,41804189
+District of Columbia,Lung and Bronchus,2013-2017,Male and Female,All Races,46.6,1529,3370464
+Mississippi,Lung and Bronchus,2013-2017,Male and Female,All Races,74.9,13237,14946074
+Missouri,Lung and Bronchus,2013-2017,Male and Female,All Races,72,27336,30364511
+West Virginia,Lung and Bronchus,2013-2017,Male and Female,All Races,79.8,10444,9193313
+Tennessee,Lung and Bronchus,2013-2017,Male and Female,All Races,74.5,30130,32978871
+Oklahoma,Lung and Bronchus,2013-2017,Male and Female,All Races,67.4,15492,19500812
+Florida,Lung and Bronchus,2013-2017,Male and Female,All Races,57.7,85025,101254539
+Arkansas,Lung and Bronchus,2013-2017,Male and Female,All Races,77.2,14434,14899089
+North Carolina,Lung and Bronchus,2013-2017,Male and Female,All Races,67.7,40831,50238101
+South Dakota,Lung and Bronchus,2013-2017,Male and Female,All Races,59,3059,4281467
+Pennsylvania,Lung and Bronchus,2013-2017,Male and Female,All Races,63.5,54335,63925466
+Iowa,Lung and Bronchus,2013-2017,Male and Female,All Races,63.3,12439,15599464
+Kentucky,Lung and Bronchus,2013-2017,Male and Female,All Races,91,24620,22137402
+Maine,Lung and Bronchus,2013-2017,Male and Female,All Races,72.1,6981,6653873
+South Carolina,Lung and Bronchus,2013-2017,Male and Female,All Races,64.4,20102,24459653
+Kansas,Lung and Bronchus,2013-2017,Male and Female,All Races,56.2,9503,14525860
+Alabama,Lung and Bronchus,2013-2017,Male and Female,All Races,64.9,19785,24265966
+Vermont,Lung and Bronchus,2013-2017,Male and Female,All Races,61.1,2616,3124796
+Arizona,Lung and Bronchus,2013-2017,Male and Female,All Races,46.8,19863,34196763
+Washington,Lung and Bronchus,2013-2017,Male and Female,All Races,54,21980,35899000
+Ohio,Lung and Bronchus,2013-2017,Male and Female,All Races,67.9,49754,58096531
+North Dakota,Lung and Bronchus,2013-2017,Male and Female,All Races,57.7,2440,3722932
+New Jersey,Lung and Bronchus,2013-2017,Male and Female,All Races,55.4,29775,44359070
+Delaware,Lung and Bronchus,2013-2017,Male and Female,All Races,66.9,4157,4703941
+New Hampshire,Lung and Bronchus,2013-2017,Male and Female,All Races,63.7,5632,6688065
+Nebraska,Lung and Bronchus,2013-2017,Male and Female,All Races,57.2,6312,9459942
+New York,Lung and Bronchus,2013-2017,Male and Female,All Races,58.7,69811,98178092
+Wisconsin,Lung and Bronchus,2013-2017,Male and Female,All Races,59.1,21219,28815341
+Illinois,Lung and Bronchus,2013-2017,Male and Female,All Races,63.7,47286,64264664
+Indiana,Lung and Bronchus,2013-2017,Male and Female,All Races,72.2,28061,33063622
+Louisiana,Lung and Bronchus,2013-2017,Male and Female,All Races,66.2,17726,23282665
+Massachusetts,Lung and Bronchus,2013-2017,Male and Female,All Races,61.6,25628,33962755
+Michigan,Lung and Bronchus,2013-2017,Male and Female,All Races,63.3,39818,49704848
+Connecticut,Lung and Bronchus,2013-2017,Male and Female,All Races,59.6,13605,17929761

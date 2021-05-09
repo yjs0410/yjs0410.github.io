@@ -1,0 +1,338 @@
+---
+title: "Income Evaluation"
+author: "SDS348 Project 2"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+---
+
+```{r global_options, include=FALSE}
+#DO NOT EDIT THIS CHUNK OR ANYTHING ABOVE IT!
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F, tidy=T, tidy.opts=list(width.cutoff=50), R.options=list(max.print=100,dplyr.print_max=100))
+
+
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+```
+
+## Project 2 - Yujin Song
+
+### Dataset Preparation
+```{r}
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+income_evaluation <- read_csv("income_evaluation.csv", 
+                              col_types = cols(fnlwgt = col_skip(), 
+                              `capital-gain` = col_skip(), `capital-loss` = col_skip()))
+# Rename columns
+income_evaluation <- income_evaluation %>% rename( eduNum = 'education-num',
+                        hrsPerWeek = 'hours-per-week' ,
+                        maritalStatus = 'marital-status',
+                        nativeCountry = 'native-country')
+# Replace ? values to NAs
+income <- income_evaluation %>% mutate_all(~ifelse(.x == '?', NA, .x))
+```
+*For this project, the dataset 'income' was used. The dataset contains total 32,561 observations on 12 variables.*\
+*The 'age' is participants' age, the 'workclass' is participants' working status (self employed, private, etc), the 'education' is the highest level of education participants have, the 'eduNum' is total number of years of education, the 'maritalStatus' is participants' marital status (married, never-married, etc), occupation is type of jobs (sales, professional, tech-support, etc), the relationship is participants' position in their family (husband, own-child, unmarried, etc), the 'race' is participants' races, the 'sex' is their gender, the 'hrsPerWeek' is total number of hours they work in a week, the 'nativeCountry' is where they originally came from, and the 'income' is whether income is higher or lower than the 50K.*\
+*The age, eduNum, and hrsPerWeek are the numeric variables, the income is a binary variable, and everything else is categorical variables.*\
+
+### Part 1
+```{r}
+# MANOVA
+manova_income <- manova(cbind(eduNum, hrsPerWeek) ~ race, data = income)
+summary(manova_income)
+
+# Univariate ANOVA
+summary.aov(manova_income)
+
+# Post-hoc t-tests
+pairwise.t.test(income$eduNum, income$race, p.adj = "none")
+pairwise.t.test(income$hrsPerWeek, income$race, p.adj = "none")
+
+```
+*A MANOVA test was conducted to see whether number of years of education or working hours per week differ by race.*\
+*According to the MANOVA test, we can conclude that there is a significant mean difference in either education years or weekly working hours based on the race, Pillai trace=0.0141, pseudo F(8,65112) = 57.8, p < 0.0001.*\
+*Univariate ANOVAs for each dependent variable were conducted as follow-up tests to the MANOVA.*\
+*The univariate ANOVAs for eduNum and hrsPerWeek are F(4,32556)=99.048, p < 0.0001 and F(4,32556)=24.408, p < 0.0001, respectively.*\
+*Post hoc analysis was performed conducting pairwise comparisons to determine which races differed in education years and working hours per week.*\
+*For number of years of education, there were significant difference between all races except Black/Amer-Indian-Eskimo and Other/Amer-Indian-Eskimo. For working hours per week, the only significant difference was shown between White and Black.*\
+*The total number of tests conducted is 23: 1 MANOVA, 2 ANOVAs, and 20 t-tests. The bonferroni correction is α=.05/23 = 0.00217.*\
+
+
+### Part 2
+```{r}
+# Randomization test
+summary(aov(hrsPerWeek~sex,data=income))
+#observed F-statistic
+obs_F <- 1807 
+
+Fs<-replicate(5000,{
+  new<-income%>%mutate(hrsPerWeek=sample(hrsPerWeek)) #scramble the data
+  #compute new F statistic on scrambled data
+  SSW<- new%>%group_by(sex)%>%summarize(SSW=sum((hrsPerWeek-mean(hrsPerWeek))^2))%>%summarize(sum(SSW))%>%pull
+  SSB<- new%>%mutate(mean=mean(hrsPerWeek))%>%group_by(sex)%>%mutate(groupmean=mean(hrsPerWeek))%>%
+    summarize(SSB=sum((mean-groupmean)^2))%>%summarize(sum(SSB))%>%pull
+  (SSB/1)/(SSW/32559)
+})
+
+#plot null distribution and observed F statistic
+
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+# p-value
+mean(Fs>obs_F)
+```
+*The null hypothesis is that there is no significant difference in hrsPerWeek between gender, and the althernative hypothesis is that there is a significant difference in hrsPerWeek between male and female.*\
+*The p-value is approximately 0, which indicates that we can reject the null hypothesis.*\
+
+### Part 3
+```{r}
+library(lmtest)
+library(sandwich)
+
+# Centering mean for numeric variable
+income$hrs_centered <- income$age - mean(income$age, na.rm = T)
+# Linear regression
+fit <- lm(hrsPerWeek ~ relationship * hrs_centered, data = income)
+summary(fit)
+
+# Plot
+income %>% select(age, relationship, hrsPerWeek) %>% na.omit %>% 
+    ggplot(aes(age, hrsPerWeek, color = relationship)) + 
+    geom_point(alpha = 0.1) + geom_smooth(method = "lm") + geom_vline(xintercept = mean(income$age, 
+    na.rm = T), lty = 2) +
+  labs(x="Age", y="Hours of work (hr)", title = "Weekly working hours vs. Age")
+
+#Check assumptions of linearity, normality, and homoskedasticity
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+# Linearity
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')
+# Normality
+ks.test(resids, "pnorm", mean=0, sd(resids))
+# Homoskedasticity
+bptest(fit)
+
+# Robust standard errors
+coeftest(fit, vcov = vcovHC(fit))
+
+# Uncorrected SEs
+summary(fit)$coef[,1:2]
+
+# Corrected/robust SE
+coeftest(fit, vcov = vcovHC(fit))[,1:2] 
+```
+*The mean/predicted weekly working hours of people with average age is 45.089 hrs.*\
+*The hours of working per week has a negative association with the age.*\
+*For people with average age, the average weekly working hours for people not in family is 4.519 less than others.*\
+*For people with average age, the average weekly working hours for people Other-relative is 8.036 less than others.*\
+*For people with average age, the average weekly working hours for people who owned child is 4.734 less than others.*\
+*For people with average age, the average weekly working hours for people who unmarried is 5.941 less than others.*\
+*For people with average age, the average weekly working hours for wives is 8.119 less than others.*\
+*According to the assumptions tests, the data is heteroskedastic and not normal.*\
+*Based on the robust standard errors, the average working hours of people in all kinds of relationships are significantly differenct each other (p < 0.05).*\
+*Compare to the uncorrected standard errors, they are slightly increased after correction.*\
+
+### Part 4
+```{r}
+# Bootstrapping
+samp_distn<-replicate(5000, {
+  boot_dat<-income[sample(nrow(income),replace=TRUE),]
+  fit2<-lm(hrsPerWeek ~ relationship * hrs_centered, data=boot_dat) 
+  coef(fit2)
+})
+
+## Estimated SEs
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+```
+*Compare to the original SEs and robust SEs, the standard errors are much larger after the bootstrapping.*\ 
+
+### Part 5
+```{r}
+income2 <- income %>% select("sex", "age", 
+    "income") %>% na.omit()
+# Create binary column
+income2 <- income2 %>% mutate(income_b=ifelse(income == "<=50K", 1,0))
+
+# Predict income from gender and race
+fit3 <- glm(income_b ~ sex + age, data = income2, family = "binomial")
+coeftest(fit3)
+
+
+
+# Logistic regression matrix
+income3 <- income2 %>% mutate(prob = predict(fit3, 
+    type = "response"), prediction = ifelse(prob > 
+    0.5, 1, 0))
+classify <- income3 %>% transmute(prob, prediction, 
+    truth = income2$income_b)
+table(prediction = classify$prediction, truth = classify$truth) %>% 
+    addmargins()
+
+# Accuracy
+(404+23755)/32561
+# Sensitivity (TPR)
+23755/24720
+# Specificity (TNR)
+404/7841
+# Precision (PPV) 
+23755/31192
+
+
+# Density plot of the log-odds
+income3$logit<-predict(fit3,type="link")
+income3%>%ggplot()+geom_density(aes(logit,color=income,fill=income), alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=income))+
+  geom_text(x=0.2,y=.4,label="TN = 404")+
+  geom_text(x=-0.2,y=.05,label="FN = 965")+
+  geom_text(x=1,y=.1,label="FP = 7437")+
+  geom_text(x=2,y=.2,label="TP = 23755")+
+labs(x="log-odd", y="Density", title = "Density plot of log odds")
+
+# ROC curve
+library(plotROC)
+pr = predict(fit3, type = "response")
+rocplot <- ggplot(income2)+geom_roc(aes(d=income_b,m=pr), n.cuts=0) 
+rocplot
+
+# AUC 
+calc_auc(rocplot)
+```
+
+*According to the regression, both gender and age have significant effects on the income.*\
+*Controlling for age, the income between male and female are significantly different.*\
+*Controlling for gender, the income is significantly different by age.*\
+*Accuracy, sensitivity (TPR), specificity (TNR), and precision (PPV) are 0.742, 0.961, 0.052, and 0.762, respectively.*\
+*According to the calculated AUC, the malignant (income <= 50K) will have higher scores than benign (income >50K) for 72.4% of time.*\
+*Probability that a randomly selected person with income less than 50K has a higher predicted probability than a randomly selected person with income higher than 50K.*
+
+
+
+### Part 6
+#### In-sample classification diagnostics
+```{r}
+# Logistic regression to predict income based on all other variables
+income4 <- income %>% select(-maritalStatus, -occupation, -nativeCountry) %>% na.omit()
+income4 <- income4 %>% mutate(income_b=ifelse(income == "<=50K", 1,0))
+
+fit4 <- glm(income_b~age+workclass+education+eduNum+relationship+race+sex+hrsPerWeek, data=income4, family="binomial")
+
+prob2 <- predict(fit4,type="response")
+
+# In-sample classification diagnostics
+class_diag(prob2,income4$income_b)
+
+
+```
+*The accuracy, sensitivity, specificity, precision, and AUC for the in-sample classification are 0.824, 0.923, 0.527, 0.855, and 0.876, respectively.*\
+*According to the AUC, there are 87.6% chance that randomly selected person with income less than 50K (malignant).*\
+
+#### K-fold CV
+```{r}
+# 10-fold CV
+set.seed(1234)
+k=10 
+
+data<-income4[sample(nrow(income4)),] 
+folds<-cut(seq(1:nrow(income4)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+  ## Create training and test sets
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  truth<-test$income_b
+  
+  ## Train model on training set
+  fit<-glm(income_b~age+workclass+education+eduNum+relationship+race+sex+hrsPerWeek,data=train,family="binomial")
+  probs<-predict(fit,newdata = test,type="response")
+  
+  ## Test model on test set (save all k results)
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+
+summarize_all(diags,mean)
+
+```
+
+*The accuracy, sensitivity, specificity, precision, and AUC for the 10-fold cross validation are 0.824, 0.922, 0.526, 0.854, and 0.875, respectively.*\
+*AUC for 10-fold CV (0.875) is approximately same as the original AUC value.*\
+
+#### LASSO
+```{r}
+# LASSO
+library(glmnet)
+y<-as.matrix(income4$income_b)
+
+x<-model.matrix(income_b~age+workclass+education+eduNum+relationship+race+sex+hrsPerWeek,data=income4)[,-1] 
+
+cv <- cv.glmnet(x,y) 
+
+cv<-cv.glmnet(x,y,family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+
+*According to the LASSO, age, gender, race (White), some relationships (not-in-family, other-relative, own-child, unmarried, wife), some education (HS-grad, master, prof-school, assoc-acdm), hours of working, and some work classes (Self-emp-inc, Self-emp-not-inc) are most predictive of income.*\
+
+#### 10-folds CV using selected variables
+```{r}
+# 10-folds CV using relationship, sex, hrsPerWeek, race
+set.seed(1234)
+k=10 
+
+income5<-income4 %>% mutate(m=ifelse(income4$sex=="Male",1,0), 
+                            white = ifelse(income4$race == "White",1,0))
+
+data<-income5[sample(nrow(income5)),] 
+folds<-cut(seq(1:nrow(income5)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+  ## Create training and test sets
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  truth<-test$income_b
+  
+  ## Train model on training set
+  fit<-glm(income_b~age+relationship+white+m+hrsPerWeek,data=train,family="binomial")
+  probs<-predict(fit,newdata = test,type="response")
+  
+  ## Test model on test set (save all k results)
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+
+summarize_all(diags,mean)
+```
+*10-fold CV was conducted using age, relationship, white (race), working hours in a week, and male (gender). Compare to the AUC values for the original and the 10-fold CV using all variables, the AUC value for the 10-fold CV using selected variables is slightly less (0.823).*
+

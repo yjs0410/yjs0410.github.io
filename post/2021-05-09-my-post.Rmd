@@ -1,0 +1,12 @@
+---
+title: My Post
+author: Yujin Song
+date: '2021-05-09'
+slug: my-post
+categories: []
+tags: []
+description: ''
+---
+# THIS IS AN EMPTY POST~
+
+<p style = "color:red">I'm too lazy to post something here</p>

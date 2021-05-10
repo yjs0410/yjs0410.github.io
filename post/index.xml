@@ -13,7 +13,7 @@
       <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/2021/05/09/my-post/</guid>
-      <description> THIS IS AN EMPTY POST~ I’m too lazy to post something here  </description>
+      <description>Sample Post! Random Python code library(reticulate) virtualenv_create(&amp;quot;blog&amp;quot;) ## virtualenv: blog #reticulate::use_condaenv(&amp;quot;py37&amp;quot;) py_install(&amp;quot;pandas&amp;quot;, envname = &amp;quot;blog&amp;quot;) ## Using virtual environment &amp;#39;blog&amp;#39; ... py_install(&amp;quot;matplotlib&amp;quot;, envname = &amp;quot;blog&amp;quot;) ## Using virtual environment &amp;#39;blog&amp;#39; ... py_install(&amp;quot;numpy&amp;quot;, envname = &amp;quot;blog&amp;quot;) ## Using virtual environment &amp;#39;blog&amp;#39; ... py_install(&amp;quot;seaborn&amp;quot;, envname = &amp;quot;blog&amp;quot;) ## Using virtual environment &amp;#39;blog&amp;#39; ... use_virtualenv(&amp;quot;blog&amp;quot;) matplotlib &amp;lt;- import(&amp;quot;matplotlib&amp;quot;, convert = TRUE) matplotlib$use(&amp;quot;Agg&amp;quot;)  import pandas as pd import numpy as np import seaborn as sns fmri = sns.</description>
     </item>
     
   </channel>

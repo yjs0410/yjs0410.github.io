@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         May 9, 2021 
             &nbsp;&nbsp;
             
           </h4>
@@ -366,15 +366,15 @@ samp_distn &lt;- replicate(5000, {
 ## Estimated SEs
 samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
 <pre><code>##   (Intercept) relationshipNot-in-family relationshipOther-relative
-## 1   0.1010564                 0.1630547                  0.4281504
+## 1   0.1030516                 0.1615876                  0.4317616
 ##   relationshipOwn-child relationshipUnmarried relationshipWife hrs_centered
-## 1             0.4650381             0.2011332        0.3125392  0.009711921
+## 1             0.4651898             0.2009918        0.3092066  0.009810256
 ##   relationshipNot-in-family:hrs_centered
-## 1                             0.01517133
+## 1                              0.0153526
 ##   relationshipOther-relative:hrs_centered relationshipOwn-child:hrs_centered
-## 1                              0.03327902                         0.03083583
+## 1                              0.03414529                         0.03126874
 ##   relationshipUnmarried:hrs_centered relationshipWife:hrs_centered
-## 1                          0.0219834                    0.03029336</code></pre>
+## 1                         0.02210539                    0.03039047</code></pre>
 <p><em>Compare to the original SEs and robust SEs, the standard errors are much larger after the bootstrapping.</em> </p>
 </div>
 <div id="part-5" class="section level3">

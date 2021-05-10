@@ -7,6 +7,53 @@ categories: []
 tags: []
 description: ''
 ---
-# THIS IS AN EMPTY POST~
+# Sample Post!
 
-<p style = "color:red">I'm too lazy to post something here</p>
+
+<p style = "color:red">Random Python code</p>
+
+
+![](/post/2021-05-09-my-post_files/bevo.png)
+
+
+
+```{r}
+library(reticulate)
+virtualenv_create("blog")
+
+
+#reticulate::use_condaenv("py37")
+py_install("pandas", envname = "blog")
+py_install("matplotlib", envname = "blog")
+py_install("numpy", envname = "blog")
+py_install("seaborn", envname = "blog")
+use_virtualenv("blog")
+
+
+matplotlib <- import("matplotlib", convert = TRUE)
+matplotlib$use("Agg")
+```
+
+```{python}
+
+import pandas as pd
+import numpy as np
+
+import seaborn as sns
+
+fmri = sns.load_dataset("fmri")
+fmri
+```
+
+```{r}
+
+f1 <- subset(py$fmri, region == 'frontal')
+```
+
+```{python}
+import matplotlib as mpl
+sns.lmplot("timepoint", "signal", data= r.f1)
+mpl.pyplot.show()
+
+```
+

@@ -72,11 +72,60 @@
               
 
 
-<div id="this-is-an-empty-post" class="section level1">
-<h1>THIS IS AN EMPTY POST~</h1>
+<div id="sample-post" class="section level1">
+<h1>Sample Post!</h1>
 <p style="color:red">
-I’m too lazy to post something here
+Random Python code
 </p>
+<p><img src="../../../../../post/2021-05-09-my-post_files/bevo.png" /></p>
+<pre class="r"><code>library(reticulate)
+virtualenv_create(&quot;blog&quot;)</code></pre>
+<pre><code>## virtualenv: blog</code></pre>
+<pre class="r"><code>#reticulate::use_condaenv(&quot;py37&quot;)
+py_install(&quot;pandas&quot;, envname = &quot;blog&quot;)</code></pre>
+<pre><code>## Using virtual environment &#39;blog&#39; ...</code></pre>
+<pre class="r"><code>py_install(&quot;matplotlib&quot;, envname = &quot;blog&quot;)</code></pre>
+<pre><code>## Using virtual environment &#39;blog&#39; ...</code></pre>
+<pre class="r"><code>py_install(&quot;numpy&quot;, envname = &quot;blog&quot;)</code></pre>
+<pre><code>## Using virtual environment &#39;blog&#39; ...</code></pre>
+<pre class="r"><code>py_install(&quot;seaborn&quot;, envname = &quot;blog&quot;)</code></pre>
+<pre><code>## Using virtual environment &#39;blog&#39; ...</code></pre>
+<pre class="r"><code>use_virtualenv(&quot;blog&quot;)
+
+
+matplotlib &lt;- import(&quot;matplotlib&quot;, convert = TRUE)
+matplotlib$use(&quot;Agg&quot;)</code></pre>
+<pre class="python"><code>
+import pandas as pd
+import numpy as np
+
+import seaborn as sns
+
+fmri = sns.load_dataset(&quot;fmri&quot;)
+fmri</code></pre>
+<pre><code>##      subject  timepoint event    region    signal
+## 0        s13         18  stim  parietal -0.017552
+## 1         s5         14  stim  parietal -0.080883
+## 2        s12         18  stim  parietal -0.081033
+## 3        s11         18  stim  parietal -0.046134
+## 4        s10         18  stim  parietal -0.037970
+## ...      ...        ...   ...       ...       ...
+## 1059      s0          8   cue   frontal  0.018165
+## 1060     s13          7   cue   frontal -0.029130
+## 1061     s12          7   cue   frontal -0.004939
+## 1062     s11          7   cue   frontal -0.025367
+## 1063      s0          0   cue  parietal -0.006899
+## 
+## [1064 rows x 5 columns]</code></pre>
+<pre class="r"><code>f1 &lt;- subset(py$fmri, region == &#39;frontal&#39;)</code></pre>
+<pre class="python"><code>import matplotlib as mpl
+sns.lmplot(&quot;timepoint&quot;, &quot;signal&quot;, data= r.f1)</code></pre>
+<pre><code>## &lt;seaborn.axisgrid.FacetGrid object at 0x7f9725bac2e8&gt;
+## 
+## /stor/home/ys22477/.local/share/r-miniconda/envs/r-reticulate/lib/python3.6/site-packages/seaborn/_decorators.py:43: FutureWarning: Pass the following variables as keyword args: x, y. From version 0.12, the only valid positional argument will be `data`, and passing other arguments without an explicit keyword will result in an error or misinterpretation.
+##   FutureWarning</code></pre>
+<pre class="python"><code>mpl.pyplot.show()</code></pre>
+<p><img src="../../../../../post/2021-05-09-my-post_files/figure-html/unnamed-chunk-4-1.png" width="480" /></p>
 </div>
 
             
